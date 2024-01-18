@@ -1,3 +1,12 @@
 pylint
 pyyaml
 yapf
+
+# grpc
+grpcio
+grpcio-tools
+pydantic
+betterproto[compiler]
+
+# workflow management
+prefect

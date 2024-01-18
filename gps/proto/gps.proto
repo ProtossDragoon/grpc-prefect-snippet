@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+package gps;
+
+message ModelInfo {
+    repeated string model_registry_url = 1;
+    string task = 2;
+}
+
+message DataInfo {
+    repeated string object_storage_url = 1;
+    string dataset = 2;
+}
+
+message Request {
+    ModelInfo model_info = 1;
+    DataInfo data_info = 2;
+    string author = 3;
+    string device = 4;
+    string description = 5;
+}
+
+message Response {
+    float latency = 1;
+    float accuracy = 2;
+    float flops = 3;
+    int32 n_params = 4;
+    google.protobuf.Timestamp timestamp = 5;
+}
+
+service EvaluationService {
+	rpc EvalFromServerA(Request) returns(Response);
+	rpc EvalFromServerB(Request) returns(Response);
+}
