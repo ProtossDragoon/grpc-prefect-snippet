@@ -5,12 +5,12 @@ import "google/protobuf/timestamp.proto";
 package gps;
 
 message ModelInfo {
-    repeated string model_registry_url = 1;
+    repeated string model_registry_urls = 1;
     string task = 2;
 }
 
 message DataInfo {
-    repeated string object_storage_url = 1;
+    repeated string object_storage_urls = 1;
     string dataset = 2;
 }
 

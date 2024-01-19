@@ -25,13 +25,13 @@ if TYPE_CHECKING:
 
 @dataclass(eq=False, repr=False)
 class ModelInfo(betterproto.Message):
-    model_registry_url: List[str] = betterproto.string_field(1)
+    model_registry_urls: List[str] = betterproto.string_field(1)
     task: str = betterproto.string_field(2)
 
 
 @dataclass(eq=False, repr=False)
 class DataInfo(betterproto.Message):
-    object_storage_url: List[str] = betterproto.string_field(1)
+    object_storage_urls: List[str] = betterproto.string_field(1)
     dataset: str = betterproto.string_field(2)
 
 

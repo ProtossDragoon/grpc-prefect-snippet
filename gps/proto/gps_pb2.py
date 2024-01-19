@@ -15,7 +15,7 @@ _sym_db = _symbol_database.Default()
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13gps/proto/gps.proto\x12\x03gps\x1a\x1fgoogle/protobuf/timestamp.proto\"5\n\tModelInfo\x12\x1a\n\x12model_registry_url\x18\x01 \x03(\t\x12\x0c\n\x04task\x18\x02 \x01(\t\"7\n\x08\x44\x61taInfo\x12\x1a\n\x12object_storage_url\x18\x01 \x03(\t\x12\x0f\n\x07\x64\x61taset\x18\x02 \x01(\t\"\x84\x01\n\x07Request\x12\"\n\nmodel_info\x18\x01 \x01(\x0b\x32\x0e.gps.ModelInfo\x12 \n\tdata_info\x18\x02 \x01(\x0b\x32\r.gps.DataInfo\x12\x0e\n\x06\x61uthor\x18\x03 \x01(\t\x12\x0e\n\x06\x64\x65vice\x18\x04 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x05 \x01(\t\"}\n\x08Response\x12\x0f\n\x07latency\x18\x01 \x01(\x02\x12\x10\n\x08\x61\x63\x63uracy\x18\x02 \x01(\x02\x12\r\n\x05\x66lops\x18\x03 \x01(\x02\x12\x10\n\x08n_params\x18\x04 \x01(\x05\x12-\n\ttimestamp\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.Timestamp2s\n\x11\x45valuationService\x12.\n\x0f\x45valFromServerA\x12\x0c.gps.Request\x1a\r.gps.Response\x12.\n\x0f\x45valFromServerB\x12\x0c.gps.Request\x1a\r.gps.Responseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13gps/proto/gps.proto\x12\x03gps\x1a\x1fgoogle/protobuf/timestamp.proto\"6\n\tModelInfo\x12\x1b\n\x13model_registry_urls\x18\x01 \x03(\t\x12\x0c\n\x04task\x18\x02 \x01(\t\"8\n\x08\x44\x61taInfo\x12\x1b\n\x13object_storage_urls\x18\x01 \x03(\t\x12\x0f\n\x07\x64\x61taset\x18\x02 \x01(\t\"\x84\x01\n\x07Request\x12\"\n\nmodel_info\x18\x01 \x01(\x0b\x32\x0e.gps.ModelInfo\x12 \n\tdata_info\x18\x02 \x01(\x0b\x32\r.gps.DataInfo\x12\x0e\n\x06\x61uthor\x18\x03 \x01(\t\x12\x0e\n\x06\x64\x65vice\x18\x04 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x05 \x01(\t\"}\n\x08Response\x12\x0f\n\x07latency\x18\x01 \x01(\x02\x12\x10\n\x08\x61\x63\x63uracy\x18\x02 \x01(\x02\x12\r\n\x05\x66lops\x18\x03 \x01(\x02\x12\x10\n\x08n_params\x18\x04 \x01(\x05\x12-\n\ttimestamp\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.Timestamp2s\n\x11\x45valuationService\x12.\n\x0f\x45valFromServerA\x12\x0c.gps.Request\x1a\r.gps.Response\x12.\n\x0f\x45valFromServerB\x12\x0c.gps.Request\x1a\r.gps.Responseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -23,13 +23,13 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'gps.proto.gps_pb2', _global
 if _descriptor._USE_C_DESCRIPTORS == False:
   DESCRIPTOR._options = None
   _globals['_MODELINFO']._serialized_start=61
-  _globals['_MODELINFO']._serialized_end=114
-  _globals['_DATAINFO']._serialized_start=116
-  _globals['_DATAINFO']._serialized_end=171
-  _globals['_REQUEST']._serialized_start=174
-  _globals['_REQUEST']._serialized_end=306
-  _globals['_RESPONSE']._serialized_start=308
-  _globals['_RESPONSE']._serialized_end=433
-  _globals['_EVALUATIONSERVICE']._serialized_start=435
-  _globals['_EVALUATIONSERVICE']._serialized_end=550
+  _globals['_MODELINFO']._serialized_end=115
+  _globals['_DATAINFO']._serialized_start=117
+  _globals['_DATAINFO']._serialized_end=173
+  _globals['_REQUEST']._serialized_start=176
+  _globals['_REQUEST']._serialized_end=308
+  _globals['_RESPONSE']._serialized_start=310
+  _globals['_RESPONSE']._serialized_end=435
+  _globals['_EVALUATIONSERVICE']._serialized_start=437
+  _globals['_EVALUATIONSERVICE']._serialized_end=552
 # @@protoc_insertion_point(module_scope)

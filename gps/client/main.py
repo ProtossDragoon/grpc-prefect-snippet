@@ -11,10 +11,10 @@ from gps.proto.gps import ModelInfo, DataInfo, Request, EvaluationServiceStub
 async def main():
     # Create sample requests
     model_info = ModelInfo(
-        model_registry_url=["http://example.com/model"], task="classification"
+        model_registry_urls=["http://example.com/model"], task="classification"
     )
     data_info = DataInfo(
-        object_storage_url=["http://example.com/data"], dataset="sample"
+        object_storage_urls=["http://example.com/data"], dataset="sample"
     )
 
     # Create a gRPC channel and a stub for each server
