@@ -5,8 +5,8 @@ yapf
 # grpc
 grpcio
 grpcio-tools
-pydantic
 betterproto[compiler]
 
 # workflow management
-prefect
+prefect==2.14.16
+pydantic<2 # 24년 1월 기준 prefect의 pydantic 2는 불안정합니다.

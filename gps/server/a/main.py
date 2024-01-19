@@ -38,35 +38,70 @@ def main(port):
 if __name__ == "__main__":
     main(port=50051)
 """
-import time
+# 내장
 import datetime
 import asyncio
 
+# 서드파티
+import prefect
 from grpclib.server import Server
+
+# 프로젝트
+from gps.server.common.dataset import download_dataset, preprocess
 from gps.proto.gps import Request, Response, EvaluationServiceBase
 
 
+@prefect.flow
+def server_a_flow(urls: list[str]) -> Response:
+    """ 서버에서 실질적으로 실행해야 하는 로직
+    """
+    for url in urls:
+        download_dataset(url)
+    preprocess()
+    preprocess()
+
+    return Response(
+        latency=5.0,
+        accuracy=0.9,
+        flops=100.0,
+        n_params=1000000,
+        timestamp=datetime.datetime.now()
+    )
+
+
 class EvalServiceFromServerA(EvaluationServiceBase):
+    """ 이 클래스는 grpc 요청 수신과 응답 이외에는 아무 역할도 하지 않도록 유지관리합니다.
+    """
 
     async def eval_from_server_a(self, request: Request) -> Response:
+        print("------------------ Recieved request ------------------")
         for k, v in request.to_dict().items():
             print(f"{k}: {v}")
+        print("------------------------------------------------------")
+        return server_a_flow(request.data_info.object_storage_urls)
 
-        time.sleep(5)
-        return Response(
-            latency=5.0,
-            accuracy=0.9,
-            flops=100.0,
-            n_params=1000000,
-            timestamp=datetime.datetime.now()
-        )
+
+class PrefectDeployerA():
+    """ 이 클래스는 prefect 요청 수신과 응답 이외에는 아무 역할도 하지 않도록 유지관리합니다.
+    """
+
+    async def deploy(self):
+        return await server_a_flow.serve(name=self.__class__.__name__)
 
 
 async def main():
-    server = Server([EvalServiceFromServerA()])
-    await server.start("127.0.0.1", 50051)
+    """ 이 함수는 grpc 서버와 prefect 서버 둘 모두를 이벤트 루프에 붙인다.
+    덕분에 `server_a_flow` 함수에 접근할 때 `grpc` 와 `prefect` 모두를 이용할 수 있다.
+    """
+
+    prefect_future = asyncio.create_task(PrefectDeployerA().deploy())
+    print("Prefect server started")
+
+    grpc_server = Server([EvalServiceFromServerA()])
+    await grpc_server.start("127.0.0.1", 50051)
     print("Server A started at port 50051")
-    await server.wait_closed()
+
+    _ = await asyncio.gather(grpc_server.wait_closed(), prefect_future)
 
 
 if __name__ == "__main__":

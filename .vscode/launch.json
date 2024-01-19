@@ -1,0 +1,29 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "client",
+            "type": "python",
+            "request": "launch",
+            "module": "gps.client.main",
+            "justMyCode": true
+        },
+        {
+            "name": "server a",
+            "type": "python",
+            "request": "launch",
+            "module": "gps.server.a.main",
+            "justMyCode": true
+        },
+        {
+            "name": "server b",
+            "type": "python",
+            "request": "launch",
+            "module": "gps.server.b.main",
+            "justMyCode": true
+        }
+    ]
+}
