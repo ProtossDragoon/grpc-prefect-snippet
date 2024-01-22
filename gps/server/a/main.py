@@ -41,9 +41,11 @@ if __name__ == "__main__":
 # 내장
 import datetime
 import asyncio
+from pathlib import Path
 
 # 서드파티
 import prefect
+from prefect.deployments import DeploymentImage
 from grpclib.server import Server
 
 # 프로젝트
@@ -88,13 +90,28 @@ class PrefectDeployerA():
     async def deploy(self):
         return await server_a_flow.serve(name=self.__class__.__name__)
 
+    async def deploy_to_workpool(self):
+        return await server_a_flow.deploy(
+            name=self.__class__.__name__,
+            work_pool_name="lock-pool",
+            image=DeploymentImage(
+                name="my-cusetom-image-for-a",
+                tag="v1",
+                dockerfile=Path("./dockerfiles/server_a_base.dockerfile"),
+                build_kwargs={}
+            ),
+            push=False
+        )
+
 
 async def main():
     """ 이 함수는 grpc 서버와 prefect 서버 둘 모두를 이벤트 루프에 붙인다.
     덕분에 `server_a_flow` 함수에 접근할 때 `grpc` 와 `prefect` 모두를 이용할 수 있다.
     """
 
-    prefect_future = asyncio.create_task(PrefectDeployerA().deploy())
+    prefect_future = asyncio.create_task(
+        PrefectDeployerA().deploy_to_workpool()
+    )
     print("Prefect server started")
 
     grpc_server = Server([EvalServiceFromServerA()])
