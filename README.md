@@ -2,32 +2,70 @@
 
 ## 테스트 환경
 
+- Ubuntu 20.04 (x86) / **python 3.8**
 - Macbook Pro M1 / **python 3.9**
 - Macbook Pro M1 / **python 3.11**
 
 ## 사용 가이드
 
-1. 가상환경을 준비하고 활성화한 다음 `make install` 명령을 실행합니다.
-2. 프로그램을 실행합니다.
+1. 가상환경을 준비하고 활성화합니다.
+2. `make install` 명령을 실행합니다.
+3. 아래를 명령들을 실행합니다.
 
-`터미널1`
+### 서버
+
+`터미널1` - prefect 서버 실행
 ```bash
-python3 -m gps.server.a.main
+make prefect-server
 ```
 
-`터미널2`
+`터미널2` - prefect 를 구성하는 요소들 설정
+```bash
+prefect work-pool create lock-container-pool --type docker
+# 하나의 작업 풀에 두 개의 큐를 만든다. 
+# 하나는 높은 우선순위를 가지고 동시작업을 금지하는 큐
+# 다른 하나는 낮은 우선순위를 가지고 동시작업을 허용하는 큐
+prefect work-queue create priority --pool lock-subprocess-pool --priority 2 --limit 1
+prefect work-queue create minority --pool lock-subprocess-pool --priority 3
+# 현재는 아직 `minority` 큐를 사용하지 않는다.
+prefect concurrency-limit create db-lock 1
+```
+
+`터미널3` - 서버 a (grpc 서버)
+```bash
+python3 -m gps.server.a.flow.main_deploy
+```
+
+`터미널4` - 서버 a (컨테이너 기반 작업 풀 `lock-container-pool`의 `priority` 큐에 플로우 배포)
+```bash
+python3 -m gps.server.a.main_grpc
+```
+
+`터미널5` - 노동자 (컨테이너 기반 작업 풀 `lock-container-pool`을 처리함)
+```bash
+prefect worker start --name "hard-worker" --pool "lock-container-pool"
+```
+
+`터미널6` - 서버 b (grpc 서버 실행과 `flow.serve()` 를 동시에)
 ```bash
 python3 -m gps.server.b.main
 ```
 
-`터미널3`
+### 클라이언트
+
+`터미널7` - grpc 클라이언트 (서버 a의 grpc 서버와 서버 b의 grpc 서버에 요청을 보냄)
 ```bash
 python3 -m gps.client.main
 ```
 
-`터미널4`
+`터미널7` - prefect CLI 클라이언트 (서버 b의 `.serve()` 된 플로우를 실행함)
 ```bash
-prefect server start
+prefect deployment run 'main-flow/PrefectDeployerA' --param urls='["a", "b", "c"]'
+```
+
+`터미널8` - prefect CLI 클라이언트 (서버 a의 `.deploy()` 된 플로우를 실행함)
+```bash
+prefect deployment run 'server-b-flow/PrefectDeployerB' --param data_info='{"object_storage_urls": ["a"], "dataset": "b"}'
 ```
 
 ## `Makefile` 이용 팁
