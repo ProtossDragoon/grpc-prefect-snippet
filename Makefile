@@ -1,4 +1,5 @@
 PROJECT = gps
+include .env
 
 all: install lint test format
 
@@ -38,3 +39,8 @@ proto:
 clean:
 	rm ./gps/proto/*.py
 	rm -r ./gps/proto/gps
+
+prefect-server:
+	prefect config set PREFECT_API_URL=${PREFECT_API_URL}
+	prefect config view
+	prefect server start --port ${PREFECT_SERVER_PORT}

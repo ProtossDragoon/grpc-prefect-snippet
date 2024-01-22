@@ -14,5 +14,12 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
 
 # --- 기본 패키지 설치 ---
 
-RUN apt-get update -y && apt-get upgrade -y
+# --- 애플리케이션 ---
 
+COPY requirements-a.txt requirements.txt
+
+RUN python3 -m pip install -r requirements.txt
+
+COPY gps gps
+
+CMD ["python3", "-m", "gps.server.a.flows.main_serve"]

@@ -1,41 +1,6 @@
+""" python3 -m gps.server.b.main
 """
-# 이 부분은 betterproto 1.x 에서 사용하는 방식입니다.
-# 일반적인 상황에서는 betterproto 2.x 을 사용합니다.
 
-import time
-import grpc
-
-from gps.proto.gps import Response
-from gps.proto.gps_pb2_grpc import (
-    EvaluationServiceServicer, add_EvaluationServiceServicer_to_server
-)
-
-class EvalServiceFromServerB(EvaluationServiceServicer):
-
-    def EvalFromServerB(self, request: Request, context):
-        print(request)
-
-        time.sleep(7)
-        return Response(
-            latency=5.0,
-            accuracy=1,
-            flops=False,
-            n_params=2000000,
-        )
-
-
-def main(port):
-    server = grpc.server(futures.ThreadPoolExecutor())
-    server.add_insecure_port(f"[::]:{port}")
-    add_EvaluationServiceServicer_to_server(EvalServiceFromServerB(), server)
-    server.start()
-    print(f"Server A started at port {port}")
-    server.wait_for_termination()
-
-
-if __name__ == "__main__":
-    main(port=50052)
-"""
 # 내장
 import asyncio
 
@@ -44,17 +9,22 @@ import prefect
 from grpclib.server import Server
 
 # 프로젝트
+from gps.server.common.dbio import db_write
+from gps.server.common.computation import heavy_computation
 from gps.server.common.dataset import download_dataset, preprocess
 from gps.proto.gps import DataInfo, Request, Response, EvaluationServiceBase
 
 
-@prefect.flow
+@prefect.flow(log_prints=True)
 def server_b_flow(data_info: DataInfo) -> Response:
     """ 서버에서 실질적으로 실행해야 하는 로직
     """
     urls = data_info.object_storage_urls
     for url in urls:
         download_dataset(url)
+    db_write("content b")
+    heavy_computation()
+    db_write("global content")
     futures = []
     futures.append(preprocess.submit())
     futures.append(preprocess.submit())
@@ -93,8 +63,8 @@ class PrefectDeployerB():
 
 
 async def main():
-    """ 이 함수는 grpc 서버와 prefect 서버 둘 모두를 이벤트 루프에 붙인다.
-    덕분에 `server_b_flow` 함수에 접근할 때 `grpc` 와 `prefect` 모두를 이용할 수 있다.
+    """ 이 함수는 grpc 서버와 prefect 서버 둘 모두를 이벤트 루프에 붙입니다.
+    덕분에 `server_b_flow` 함수에 접근할 때 `grpc` 와 `prefect` 모두를 이용할 수 있습니다.
     """
 
     prefect_future = asyncio.create_task(PrefectDeployerB().deploy())
