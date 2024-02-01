@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  base:
+    env_file:
+      - network.env
+      - docker.env
+
+  prefect:
+    extends:
+      service: base
+    image: ${PREFECT_IMAGE_NAME}
+    container_name: ${PREFECT_CONTAINER_NAME}
+    network_mode: "host"
+    # NOTE: 분산 환경이 아닌 경우, 직접 매핑하는 대신 호스트 네트워크를 같이 사용하면 편리합니다.
+    # ports:
+    #   - '${PREFECT_SERVER_PORT}:${PREFECT_SERVER_PORT}'
+    # expose:
+    #   - '${PREFECT_SERVER_PORT}'
+    volumes:
+      - ${PREFECT_VOLUME_SRC_PATH}:${PREFECT_VOLUME_DST_PATH}
+
+  server_a:
+    extends:
+      service: base
+    # NOTE: prefect 서버가 로컬 환경에서 동작하는 경우에 대비합니다.
+    # depends_on:
+    #   - prefect
+    image: ${SERVER_A_IMAGE_NAME}
+    container_name: ${SERVER_A_CONTAINER_NAME}
+    build:
+      context: ./dockerfiles
+      dockerfile: server_a.dockerfile
+      args:
+        - BASE_IMAGE=${SERVER_A_BASE_IMAGE}
+      ssh:
+        - default
+    network_mode: "host"
+    # 분산 환경이 아닌 경우, 직접 매핑하는 대신 호스트 네트워크를 같이 사용하면 편리합니다.
+    # ports:
+    #   - '${SERVER_A_PORT}:${SERVER_A_PORT}'
+    # expose:
+    #   - '${SERVER_A_PORT}'
+    environment:
+      - PREFECT_API_URL=${PREFECT_API_URL_IN_CONTAINERS}
+      - PREFECT_SERVER_PORT=${PREFECT_SERVER_PORT}
+    # command: python3 -m ...
+    stdin_open: true
+    tty: true
+
+  server_b:
+    extends:
+      service: base
+    # depends_on:
+    #   - prefect
+    image: ${SERVER_B_IMAGE_NAME}
+    container_name: ${SERVER_B_CONTAINER_NAME}
+    shm_size: ${SERVER_COMPUTING_SHM_SIZE_GB}GB
+    build:
+      context: ./dockerfiles
+      dockerfile: server_b.dockerfile
+      args:
+        - BASE_IMAGE=${SERVER_B_BASE_IMAGE}
+      ssh:
+        - default
+    network_mode: "host"
+    # 분산 환경이 아닌 경우, 직접 매핑하는 대신 호스트 네트워크를 같이 사용하면 편리합니다.
+    # ports:
+    #   - '${SERVER_B_PORT}:${SERVER_B_PORT}'
+    # expose:
+    #   - '${SERVER_B_PORT}'
+    # command: python3 -m ...
+    environment:
+      - PREFECT_API_URL=${PREFECT_API_URL_IN_CONTAINERS}
+      - PREFECT_SERVER_PORT=${PREFECT_SERVER_PORT}
+    stdin_open: true
+    tty: true
