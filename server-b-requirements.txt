@@ -10,6 +10,5 @@ betterproto[compiler]
 
 # workflow management
 prefect>2.14.15
-prefect-docker
 pysocks
 pydantic<2 # 24년 1월 기준 prefect의 pydantic 2는 불안정합니다.

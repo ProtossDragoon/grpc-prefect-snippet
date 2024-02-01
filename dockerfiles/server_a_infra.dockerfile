@@ -16,9 +16,9 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
 
 # --- 애플리케이션 ---
 
-COPY requirements-a.txt requirements.txt
+COPY server-a-requirements.txt server-a-requirements.txt
 
-RUN python3 -m pip install -r requirements.txt
+RUN python3 -m pip install -r server-a-requirements.txt
 
 COPY gps gps
 

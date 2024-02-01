@@ -8,7 +8,7 @@ import asyncio
 from grpclib.server import Server
 
 # 프로젝트
-from gps.server.a.flows import main_flow
+from gps.server.a.flows import server_a_flow
 from gps.proto.gps import Request, Response, EvaluationServiceBase
 
 
@@ -21,7 +21,7 @@ class EvalServiceFromServerA(EvaluationServiceBase):
         for k, v in request.to_dict().items():
             print(f"{k}: {v}")
         print("------------------------------------------------------")
-        return Response(**main_flow(request.data_info.object_storage_urls))
+        return Response(**server_a_flow(request.data_info.object_storage_urls))
 
 
 async def main():

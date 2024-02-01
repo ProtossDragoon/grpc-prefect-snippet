@@ -1,5 +1,5 @@
 PROJECT = gps
-include .env
+include ./envs/network.env
 
 all: install lint test format
 
@@ -43,4 +43,7 @@ clean:
 prefect-server:
 	prefect config set PREFECT_API_URL=${PREFECT_API_URL}
 	prefect config view
-	prefect server start --port ${PREFECT_SERVER_PORT}
+	prefect server start --host ${PREFECT_HOST} --port ${PREFECT_SERVER_PORT}
+
+prefect-server-clean:
+	prefect server database reset -y
