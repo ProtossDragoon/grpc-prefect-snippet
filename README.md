@@ -1,9 +1,12 @@
 # GPS: grpc-prefect-snippet
 
 - prefect 는 아직 빠르게 발전하고 있는 오픈소스이다 보니 사용이 상당히 까다롭습니다.
-- 다른 시스템 (이를테면 docker, compose, grpc 등...) 과 결합되면 그 복잡도는 훨씬 높아집니다.
+- 다른 시스템 (이를테면 docker, compose, grpc, python-betterproto* 등...) 과 결합되면 그 복잡도는 훨씬 높아집니다.
 - 한 번 완성되어 돌아가는 것이 확인된 작은 소스 코드 조각들로부터 천천히 테스트하며 수정하고 확장해 나가기를 추천합니다.
 - 이 저장소는 그 수정의 시작점이 될 수 있을 것입니다.
+- 만약 소스코드가 너무 복잡하다면, 우측의 `tags` 에서 낮은 버전의 태그부터 한 단계씩 올라가볼 것을 추천합니다.
+
+NOTE: `python-betterproto`: python 에서 grpc 통신을 하고자 할 때 읽고 쓰기 편한 python 데이터클래스를 자동으로 만들어주는 도구
 
 ## 테스트 환경
 
@@ -42,7 +45,7 @@ make prefect-server
 
 - 모든 터미널의 가상환경을 잊지 맙시다.
 - 터미널에 노출된 주소에 들어가 접속상태를 확인합니다.
-- 작동하지 않는다면 `./envs/network.env` 에 명시된 포트를 바꾸어 봅니다.
+- 작동하지 않는다면 `envs/network.env` 에 명시된 포트를 바꾸어 봅니다.
 
 ![prefect_dashboard](./docs/prefect_dashboard.png)
 
