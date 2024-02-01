@@ -12,7 +12,7 @@ from gps.server.common.dataset import download_dataset, preprocess
 
 
 @prefect.flow
-def main_flow(urls: List[str]) -> dict:
+def server_a_flow(urls: List[str]) -> dict:
     """ 서버에서 실질적으로 실행해야 하는 로직
     """
     for url in urls:

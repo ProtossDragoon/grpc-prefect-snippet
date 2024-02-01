@@ -1,12 +1,33 @@
 # GPS: grpc-prefect-snippet
 
+- prefect 는 아직 빠르게 발전하고 있는 오픈소스이다 보니 사용이 상당히 까다롭습니다.
+- 다른 시스템 (이를테면 docker, compose, grpc 등...) 과 결합되면 그 복잡도는 훨씬 높아집니다.
+- 한 번 완성되어 돌아가는 것이 확인된 작은 소스 코드 조각들로부터 천천히 테스트하며 수정하고 확장해 나가기를 추천합니다.
+- 이 저장소는 그 수정의 시작점이 될 수 있을 것입니다.
+
 ## 테스트 환경
 
 - Ubuntu 20.04 (x86) / **python 3.8**
 - Macbook Pro M1 / **python 3.9**
 - Macbook Pro M1 / **python 3.11**
 
-## 사용 가이드
+# 사용 가이드
+
+| 방법 | prefect | server a | server b | 개발현황 |
+|:--:|:-------:|:---------:|:--------:|:-------:|
+| #1 | local | grpc ➡️ local, 플로우 실행 | grpc or prefect cli ➡️ local, 플로우 실행 | ✅ |
+| #2 | local | prefect cli ➡️ local, containerized 플로우 호출 | grpc or prefect cli ➡️ local, 플로우 실행 | ✅ |
+| #3 | local | prefect cli ➡️ local, containerized 플로우 호출 | grpc or prefect cli ➡️ container, 플로우 실행 | |
+| #4 | local | prefect cli ➡️ container 에서 containerized 플로우 호출 | grpc or prefect cli ➡️ container, 플로우 실행 | |
+| #5 | local | prefect cli ➡️ container 에서 containerized 플로우 호출 | grpc or prefect cli ➡️ container, 플로우 실행 | |
+| #6 | container | prefect cli ➡️ container 에서 containerized 플로우 호출 (dind) | grpc or prefect cli ➡️ container, 플로우 실행 | |
+
+- 일거리 풀: work pool
+- 플로우: flow
+- 작업: task
+- 노동자: worker
+
+## 방법 #1 #2
 
 1. 가상환경을 준비하고 활성화합니다.
 2. `make install` 명령을 실행합니다.
@@ -19,29 +40,43 @@
 make prefect-server
 ```
 
+- 모든 터미널의 가상환경을 잊지 맙시다.
+- 터미널에 노출된 주소에 들어가 접속상태를 확인합니다.
+- 작동하지 않는다면 `./envs/network.env` 에 명시된 포트를 바꾸어 봅니다.
+
+![prefect_dashboard](./docs/prefect_dashboard.png)
+
 `터미널2` - prefect 를 구성하는 요소들 설정
 ```bash
+# 1. 플로우 레벨 동시성 제한 설정
 prefect work-pool create lock-container-pool --type docker
-# 하나의 작업 풀에 두 개의 큐를 만든다. 
+# 하나의 일거리 풀에 두 개의 일거리 큐를 생성합니다.
 # 하나는 높은 우선순위를 가지고 동시작업을 금지하는 큐
 # 다른 하나는 낮은 우선순위를 가지고 동시작업을 허용하는 큐
-prefect work-queue create priority --pool lock-subprocess-pool --priority 2 --limit 1
-prefect work-queue create minority --pool lock-subprocess-pool --priority 3
-# 현재는 아직 `minority` 큐를 사용하지 않는다.
+prefect work-queue create priority --pool lock-container-pool --priority 2 --limit 1
+prefect work-queue create minority --pool lock-container-pool --priority 3
+# 이 소스코드는 아직 `minority` 일거리 큐를 사용하지 않습니다.
+
+# 2. 작업 레벨 동시성 제한 설정
 prefect concurrency-limit create db-lock 1
 ```
 
-`터미널3` - 서버 a (grpc 서버)
-```bash
-python3 -m gps.server.a.flow.main_deploy
-```
+![prefect_workpools_workqueues](./docs/prefect_workpools_workqueues.png)
 
-`터미널4` - 서버 a (컨테이너 기반 작업 풀 `lock-container-pool`의 `priority` 큐에 플로우 배포)
+`터미널3` - 서버 a (grpc 서버)
 ```bash
 python3 -m gps.server.a.main_grpc
 ```
 
-`터미널5` - 노동자 (컨테이너 기반 작업 풀 `lock-container-pool`을 처리함)
+`터미널4` - 서버 a (컨테이너 기반 일거리 풀 `lock-container-pool`의 `priority` 큐에 플로우 배포)
+```bash
+# NOTE: MacOS docker desktop 에서는 도커의 --network "host" 옵션이 적용되지 않습니다.
+# 따라서, 이 경우에는 envs/network.env 의 `PREFECT_API_URL_IN_CONTAINERS` 가 "host.docker.internal" 인지 확인하세요.
+# Ubuntu docker 에서는 `PREFECT_API_URL_IN_CONTAINERS` 가 `PREFECT_HOST` 와 동일해도 상관없습니다.
+python3 -m gps.server.a.flows.main_deploy
+```
+
+`터미널5` - 노동자 (컨테이너 기반 일거리 풀 `lock-container-pool`을 처리함)
 ```bash
 prefect worker start --name "hard-worker" --pool "lock-container-pool"
 ```
@@ -58,15 +93,36 @@ python3 -m gps.server.b.main
 python3 -m gps.client.main
 ```
 
+- 서버 a 의 grpc 서버 터미널과 서버 b 의 터미널을 확인해보세요.
+- 웹 UI를 확인해보세요.
+- 실행을 마치기까지는 약간의 시간이 소요됩니다.
+
+![prefect_flows](./docs/prefect_flows.png)
+
+![prefect_flow_server_a_flow](./docs/prefect_flow_server_a_flow.png)
+
+![prefect_flow_server_b_flow](./docs/prefect_flow_server_b_flow.png)
+
+
 `터미널7` - prefect CLI 클라이언트 (서버 b의 `.serve()` 된 플로우를 실행함)
 ```bash
-prefect deployment run 'main-flow/PrefectDeployerA' --param urls='["a", "b", "c"]'
+prefect deployment run 'server-a-flow/PrefectDeployerA' --param urls='["a", "b", "c"]'
 ```
+
+- 서버 a 의 노동자 터미널을 확인해보세요.
+- 웹 UI를 확인해보세요.
+
+![prefect_deployed_flow_server_a](./docs/prefect_deployed_flow_server_a.png)
 
 `터미널8` - prefect CLI 클라이언트 (서버 a의 `.deploy()` 된 플로우를 실행함)
 ```bash
 prefect deployment run 'server-b-flow/PrefectDeployerB' --param data_info='{"object_storage_urls": ["a"], "dataset": "b"}'
 ```
+
+- 서버 b 의 터미널을 확인해보세요.
+- 웹 UI를 확인해보세요.
+
+![prefect_deployed_flow_server_b](./docs/prefect_deployed_flow_server_b.png)
 
 ## `Makefile` 이용 팁
 
@@ -108,7 +164,7 @@ class DataInfo(betterproto.Message):
     dataset: str = betterproto.string_field(2)
 
 @prefect.flow
-def server_flow(data_info: DataInfo) -> Response: 
+def server_flow(data_info: DataInfo) ➡️ Response: 
     ...
 
 # ...
