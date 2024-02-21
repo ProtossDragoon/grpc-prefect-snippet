@@ -30,15 +30,15 @@ proto:
 	python3 -m grpc_tools.protoc \
 		--python_out=. \
 		--grpc_python_out=. \
-		--python_betterproto_out=gps/proto \
+		--python_betterproto_out=${PROJECT}/proto \
 		--proto_path=. \
-		gps/proto/gps.proto
+		${PROJECT}/proto/${PROJECT}.proto
 	# NOTE: python_out, grpc_python_out: RAW official grpc output. Use betterproto instead.
 	# NOTE: betterproto also has --python_betterproto_opt=pydantic_dataclasses option but currently not stable.
 
 clean:
-	rm ./gps/proto/*.py
-	rm -r ./gps/proto/gps
+	rm ./${PROJECT}/proto/*.py
+	rm -r ./${PROJECT}/proto/${PROJECT}
 
 prefect-server:
 	prefect config set PREFECT_API_URL=${PREFECT_API_URL}
