@@ -9,6 +9,7 @@ from prefect.deployments import run_deployment
 # 프로젝트
 from gps.proto.gps import Response
 from gps.server.common.colorprint import colorprint
+from gps.server.common.errors import PrefectException
 
 
 async def main():
@@ -28,9 +29,12 @@ async def main():
     response_b = response_b.state.result()
     print(repr(response_b))
     colorprint("실질적인 값은 데이터베이스에 저장되어 있습니다. 이 값을 가져옵니다.")
-    response_b = await response_b.get()
-    print(repr(response_b))
+    try:
+        response_b = await response_b.get()
+    except AttributeError as e:
+        raise PrefectException from e
     colorprint("가져온 값은 자동으로 역직렬화됩니다. 가져온 값은 grpc 리턴타입을 가집니다.")
+    print(repr(response_b))
     assert isinstance(response_b, Response)
     # NOTE: 더 궁금하면 https://docs.prefect.io/latest/concepts/results/ 을 참고하세요.
 
@@ -53,8 +57,6 @@ async def main():
     colorprint("비동기적 실행을 완료했습니다. 반환받은 값은 다음과 같습니다.")
     print(response_b)
 
-    return True
-
 
 if __name__ == "__main__":
-    print(f"response_b: {asyncio.run(main())}")
+    asyncio.run(main())

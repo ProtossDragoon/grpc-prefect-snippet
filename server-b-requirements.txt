@@ -3,12 +3,4 @@ pyyaml
 yapf
 python-dotenv
 
-# grpc
-grpcio
-grpcio-tools
-betterproto[compiler]
-
-# workflow management
-prefect>2.14.15
-pysocks
-pydantic<2 # 24년 1월 기준 prefect의 pydantic 2는 불안정합니다.
+# NOTE: 여기에 명시되지 않은 의존성들은 모두 Makefile 또는 dockerfile 에서 설치됩니다.

@@ -21,7 +21,7 @@ class EvalServiceFromServerA(EvaluationServiceBase):
         for k, v in request.to_dict().items():
             print(f"{k}: {v}")
         print("------------------------------------------------------")
-        return Response(**server_a_flow(request.data_info.object_storage_urls))
+        return Response(**server_a_flow(request))
 
 
 async def main():

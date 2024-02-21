@@ -24,6 +24,7 @@
 |    서버   | 기능 | 개발현황 |
 |:--------:|:---:|:------:|
 |  a.main_grpc  | `server_a_flow` 함수를 실행하는 50051번 포트의 grpc 서버 |  ✅  |
+|  a.main_serve  | `server_a_flow` 함수를 실행하는 50051번 포트의 grpc 서버 |  ✅  |
 |  b.main  | `server_b_flow` 함수를 실행하는 50052번 포트의 grpc 서버 + `prefect API` 에 응답하는 서버 |  ✅  |
 
 ### 용어 정리
@@ -93,24 +94,64 @@ python3 -m gps.client.scenarios.s2_2
 
 ## 시나리오 #3
 
+서버 `a`에서 `prefect` 플로우를 일거리 풀(work pool)의 일거리 큐(work queue)에 등록하고, 노동자(worker)를 이용해 실행합니다.
+
+- NOTE: 이들의 개념이 더 궁금하면 다음 글들을 참고하세요.
+  - https://docs.prefect.io/latest/tutorial/work-pools/
+  - https://docs.prefect.io/latest/tutorial/workers/
+  - https://docs.prefect.io/latest/concepts/work-pools/
+
+1. 가상환경을 준비하고 활성화합니다.
+2. `make install` 명령을 실행합니다.
+3. 아래 명령들을 실행합니다.
+
 ### 서버
 
-`터미널2` - prefect 를 구성하는 요소들 설정
+`터미널2` - 프로세스 일거리 풀과 작업 큐 생성
 ```bash
-# 1. 플로우 레벨 동시성 제한 설정
-prefect work-pool create lock-container-pool --type docker
+# 일거리 풀을 생성합니다.
+prefect work-pool create lock-pool --type process
+
 # 하나의 일거리 풀에 두 개의 일거리 큐를 생성합니다.
 # 하나는 높은 우선순위를 가지고 동시작업을 금지하는 큐
 # 다른 하나는 낮은 우선순위를 가지고 동시작업을 허용하는 큐
+prefect work-queue create priority --pool lock-pool --priority 2 --limit 1
+prefect work-queue create minority --pool lock-pool --priority 3
+
+# 노동자를 배정합니다.
+prefect worker start --name hard-worker --pool lock-pool --work-queue priority
+```
+
+`터미널3` - 서버 `a`
+```bash
+python3 -m gps.server.a.main_deploy_process
+```
+
+NOTE: `process`를 이용한 시나리오는 아직 완전하지 않습니다. 왜 불안전한지 더 궁금하신 분들은 [prefect 이슈](https://github.com/PrefectHQ/prefect/issues/11597)와 [슬랙 커뮤니티](https://prefect-community.slack.com/archives/CL09KU1K7/p1704406865966729)를 참고하세요. 이는 2.15버전에 아직 머지되지 않았습니다. 곧 지원될 예정이지만, 그 전까지는 `docker`을 이용하는 아래 시나리오만 시도해 보세요.
+
+NOTE: 실행 전, 로컬 환경에 도커(또는 도커 데스크톱)가 실행 중인지 확인하세요.
+
+`터미널2` - 컨테이너 일거리 풀과 작업 큐 생성
+```bash
+prefect work-pool create lock-container-pool --type docker
 prefect work-queue create priority --pool lock-container-pool --priority 2 --limit 1
 prefect work-queue create minority --pool lock-container-pool --priority 3
-# 이 소스코드는 아직 `minority` 일거리 큐를 사용하지 않습니다.
+prefect worker start --name hard-worker --pool lock-container-pool --work-queue priority
+```
 
-# 2. 작업 레벨 동시성 제한 설정
-prefect concurrency-limit create db-lock 1
+`터미널3` - 서버 `a`
+```bash
+python3 -m gps.server.a.main_deploy_docker
 ```
 
 ![prefect_workpools_workqueues](./docs/prefect_workpools_workqueues.png)
+
+`터미널3` - `prefect API` 클라이언트 (python API)
+```bash
+python3 -m gps.client.scenarios.s3
+```
+
+# TODO 여기 아래로 아직 시나리오 작성 중
 
 `터미널3` - 서버 a (grpc 서버)
 ```bash
@@ -172,6 +213,13 @@ prefect deployment run 'server-b-flow/PrefectDeployerB' --param data_info='{"obj
 - 웹 UI를 확인해보세요.
 
 ![prefect_deployed_flow_server_b](./docs/prefect_deployed_flow_server_b.png)
+
+
+`FIXME`
+```
+# 2. 작업 레벨 동시성 제한 설정
+prefect concurrency-limit create db-lock 1
+```
 
 ## `Makefile` 이용 팁
 

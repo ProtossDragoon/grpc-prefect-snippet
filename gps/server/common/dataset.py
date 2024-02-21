@@ -1,17 +1,22 @@
-""" 플로우 내부에서 플로우나 태스크가 호출될 수 있음을 보여주기 위한 파일.
-"""
-
+# 내장
 import time
 
+# 서드파티
 import prefect
+
+
+@prefect.flow
+def download_model(url: str):
+    print(f"Downloading model from {url} ... ")
+    time.sleep(1.5)
 
 
 @prefect.flow
 def download_dataset(url: str):
     print(f"Downloading dataset from {url} ... ")
-    time.sleep(5)
+    time.sleep(3)
 
 
 @prefect.task
 def preprocess():
-    time.sleep(3)
+    time.sleep(2)

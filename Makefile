@@ -1,15 +1,15 @@
 PROJECT = gps
-include ./envs/network.env
+include envs/network.env
 
 all: install lint test format
 
 install:
 	python3 -m pip install --upgrade pip
-	python3 -m pip install -r requirements.txt
 	# NOTE: betterproto 1.x is not full-featured, but currently 2.x is not released.
-	# so uninstall betterproto 1.x and reinstall 2.x
 	python3 -m pip uninstall -y betterproto
 	python3 -m pip install "betterproto[compiler]" --pre
+	python3 -m pip install "pydantic<2" "prefect>=2.15" "prefect-docker"
+	python3 -m pip install -r requirements.txt
 
 uninstall:
 	python3 -m pip install --upgrade pip
