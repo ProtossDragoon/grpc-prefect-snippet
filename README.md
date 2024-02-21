@@ -163,7 +163,7 @@ python3 -m gps.server.a.main_grpc
 # NOTE: MacOS docker desktop 에서는 도커의 --network "host" 옵션이 적용되지 않습니다.
 # 따라서, 이 경우에는 envs/network.env 의 `PREFECT_API_URL_IN_CONTAINERS` 가 "host.docker.internal" 인지 확인하세요.
 # Ubuntu docker 에서는 `PREFECT_API_URL_IN_CONTAINERS` 가 `PREFECT_HOST` 와 동일해도 상관없습니다.
-python3 -m gps.server.a.flows.main_deploy
+python3 -m gps.server.a.flow.main_deploy
 ```
 
 `터미널5` - 노동자 (컨테이너 기반 일거리 풀 `lock-container-pool`을 처리함)

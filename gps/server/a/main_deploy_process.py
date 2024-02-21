@@ -7,7 +7,7 @@ import dotenv
 from prefect.runner.storage import GitRepository
 
 # 프로젝트
-from gps.server.a.flows import server_a_flow
+from gps.server.a.flow import server_a_flow
 
 
 def main():

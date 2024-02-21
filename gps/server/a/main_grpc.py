@@ -8,7 +8,7 @@ import asyncio
 from grpclib.server import Server
 
 # 프로젝트
-from gps.server.a.flows import server_a_flow
+from gps.server.a.flow import server_a_flow
 from gps.proto.gps import Request, Response, EvaluationServiceBase
 
 

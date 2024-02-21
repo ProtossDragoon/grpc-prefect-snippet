@@ -8,7 +8,7 @@ import dotenv
 from prefect.deployments import DeploymentImage
 
 # 프로젝트
-from gps.server.a.flows import server_a_flow
+from gps.server.a.flow import server_a_flow
 
 
 def build_base_image(image_name: str):
