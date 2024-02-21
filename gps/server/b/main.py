@@ -4,42 +4,15 @@
 # 내장
 import asyncio
 
-# 서드파티
-import prefect
 from grpclib.server import Server
 
 # 프로젝트
-from gps.server.common.dbio import db_write
-from gps.server.common.computation import heavy_computation
-from gps.server.common.dataset import download_dataset, preprocess
-from gps.proto.gps import DataInfo, Request, Response, EvaluationServiceBase
-
-
-@prefect.flow(log_prints=True)
-def server_b_flow(data_info: DataInfo) -> Response:
-    """ 서버에서 실질적으로 실행해야 하는 로직
-    """
-    urls = data_info.object_storage_urls
-    for url in urls:
-        download_dataset(url)
-    db_write("content b")
-    heavy_computation()
-    db_write("global content")
-    futures = []
-    futures.append(preprocess.submit())
-    futures.append(preprocess.submit())
-    futures.append(preprocess.submit())
-    futures.append(preprocess.submit())
-    futures.append(preprocess.submit())
-    for future in futures:
-        future.result()
-
-    return Response(
-        latency=5.0,
-        accuracy=1,
-        flops=False,
-        n_params=2000000,
-    )
+from gps.server.b.flow import server_b_flow
+from gps.proto.gps import (
+    Request,
+    Response,
+    EvaluationServiceBase,
+)
 
 
 class EvalServiceFromServerB(EvaluationServiceBase):
@@ -72,7 +45,7 @@ async def main():
 
     grpc_server = Server([EvalServiceFromServerB()])
     await grpc_server.start("127.0.0.1", 50052)
-    print("Server A started at port 50052")
+    print("Server B started at port 50052")
 
     _ = await asyncio.gather(grpc_server.wait_closed(), prefect_future)
 

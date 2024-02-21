@@ -1,9 +1,11 @@
 # GPS: grpc-prefect-snippet
 
-- prefect 는 아직 빠르게 발전하고 있는 오픈소스이다 보니 사용이 상당히 까다롭습니다.
-- 다른 시스템 (이를테면 docker, compose, grpc 등...) 과 결합되면 그 복잡도는 훨씬 높아집니다.
-- 한 번 완성되어 돌아가는 것이 확인된 작은 소스 코드 조각들로부터 천천히 테스트하며 수정하고 확장해 나가기를 추천합니다.
-- 이 저장소는 그 수정의 시작점이 될 수 있을 것입니다.
+- `prefect` 는 빠르게 발전하고 있는 워크플로 오케스트레이션 도구입니다. 추상적으로 바라본다면 `Airflow`, `Dagster`, `Argo-workflow` 와 비슷한 계위에 놓여 있다고 생각할 수 있습니다.
+- `prefect` 는 보일러플레이트가 적고 파이썬 친화적입니다. DAG을 강요하지 않는다는 장점이 있습니다. 워크플로는 클라우드, 쿠버네티스같이 접근 허들이 높은 환경뿐 아니라 로컬 환경이나 로컬 도커, 관리형 클라우드같이 접근이 쉬운 환경에서 차근차근 개발해나갈 수 있도록 설계되었습니다. 따끈따끈한 소프트웨어에 걸맞게 깔끔하고 직관적인 웹 대시보드를 제공하는 것도 장점 중 하나입니다.
+- 한편 빠르게 발전하고 있는 소프트웨어인만큼, 한국 사용자 레퍼런스가 적고 버그와 정상 작동의 경계가 모호해 사용이 꽤나 까다롭습니다.
+- 특히 다른 통신 시스템 및 오케스트레이션 도구 (이를테면 `grpc`, `docker`, `docker compose` 등...) 들과 결합되면 그 고민은 훨씬 깊어지는 것 같습니다.
+- 이미 잘 작동하는 것이 확인된 작은 소스 코드 조각들로부터 천천히 테스트하며 수정하고 확장해 나가기를 추천합니다. 이 저장소가 고민의 시작점이 되기를 바랍니다.
+- 같이 사용 사례를 누적해 나가면서 이슈 대응해 나가면 좋겠습니다. 🤪
 
 ## 테스트 환경
 
@@ -11,40 +13,87 @@
 - Macbook Pro M1 / **python 3.9**
 - Macbook Pro M1 / **python 3.11**
 
-# 사용 가이드
+# 튜토리얼
 
-| 방법 | prefect | server a | server b | 개발현황 |
-|:--:|:-------:|:---------:|:--------:|:-------:|
-| #1 | local | grpc ➡️ local, 플로우 실행 | grpc or prefect cli ➡️ local, 플로우 실행 | ✅ |
-| #2 | local | prefect cli ➡️ local, containerized 플로우 호출 | grpc or prefect cli ➡️ local, 플로우 실행 | ✅ |
-| #3 | local | prefect cli ➡️ local, containerized 플로우 호출 | grpc or prefect cli ➡️ container, 플로우 실행 | |
-| #4 | local | prefect cli ➡️ container 에서 containerized 플로우 호출 | grpc or prefect cli ➡️ container, 플로우 실행 | |
-| #5 | local | prefect cli ➡️ container 에서 containerized 플로우 호출 | grpc or prefect cli ➡️ container, 플로우 실행 | |
-| #6 | container | prefect cli ➡️ container 에서 containerized 플로우 호출 (dind) | grpc or prefect cli ➡️ container, 플로우 실행 | |
+- `prefect` 를 이용해 워크플로를 오케스트레이션하는 방법은 다양합니다.
+- 각각의 방법마다 코드 조각을 실행하는 방법을 하나씩 안내합니다.
+- 조금씩 사용 사례를 누적해 나갈 예정입니다.
+
+### 코드 아웃라인
+
+|    서버   | 기능 | 개발현황 |
+|:--------:|:---:|:------:|
+|  a.main_grpc  | `server_a_flow` 함수를 실행하는 50051번 포트의 grpc 서버 |  ✅  |
+|  b.main  | `server_b_flow` 함수를 실행하는 50052번 포트의 grpc 서버 + `prefect API` 에 응답하는 서버 |  ✅  |
+
+### 용어 정리
 
 - 일거리 풀: work pool
 - 플로우: flow
 - 작업: task
 - 노동자: worker
 
-## 방법 #1 #2
+## 공통 주의사항
+
+- 모든 터미널의 가상환경을 잊지 맙시다.
+- 터미널에 노출된 주소에 들어가 접속상태를 확인합니다.
+- 작동하지 않는다면 `envs/network.env` 에 명시된 포트를 바꾸어 봅니다.
+
+## 시나리오 #1
+
+`grpc` 서버 `a`에서 `prefect` 플로우를 실행합니다. 플로우 함수는 `python-betterproto` 를 이용해 만들어진 데이터클래스를 인자로 사용합니다.
 
 1. 가상환경을 준비하고 활성화합니다.
 2. `make install` 명령을 실행합니다.
-3. 아래를 명령들을 실행합니다.
+3. 아래 명령들을 실행합니다.
 
-### 서버
-
-`터미널1` - prefect 서버 실행
+`터미널1` - `prefect` 서버 실행
 ```bash
 make prefect-server
 ```
 
-- 모든 터미널의 가상환경을 잊지 맙시다.
-- 터미널에 노출된 주소에 들어가 접속상태를 확인합니다.
-- 작동하지 않는다면 `./envs/network.env` 에 명시된 포트를 바꾸어 봅니다.
-
 ![prefect_dashboard](./docs/prefect_dashboard.png)
+
+`터미널2` - 서버 `a`
+```bash
+python3 -m gps.server.a.main_grpc
+```
+
+`터미널3` - `grpc` 클라이언트
+```bash
+python3 -m gps.client.scenarios.s1
+```
+
+2/20 작동 테스트 완료
+
+## 시나리오 #2
+
+서버 `b`에서 `prefect` 플로우를 실행합니다. 서버 `b`의 플로우는 `grpc`를 통해 실행되는 것도 가능하고, `prefect API`를 통해 실행되는 것도 가능하도록 작성되어 있습니다. 각 서버의 특징을 한눈에 비교하려면 위 표를 참고하세요. 이번에도 마찬가지로 플로우 함수는 `python-betterproto` 를 이용해 만들어진 데이터클래스를 인자로 사용합니다.
+
+1. 가상환경을 준비하고 활성화합니다.
+2. `make install` 명령을 실행합니다.
+3. 아래 명령들을 실행합니다.
+
+`터미널2` - 서버 `b`
+```bash
+python3 -m gps.server.b.main
+```
+
+`터미널3` - `grpc` 클라이언트
+```bash
+python3 -m gps.client.scenarios.s2_1
+```
+
+`터미널3` - `prefect API` 클라이언트 (python API, CLI)
+```bash
+python3 -m gps.client.scenarios.s2_2
+```
+
+2/21 작동 테스트 완료
+
+## 시나리오 #3
+
+### 서버
 
 `터미널2` - prefect 를 구성하는 요소들 설정
 ```bash
