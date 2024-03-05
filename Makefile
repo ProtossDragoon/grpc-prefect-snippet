@@ -1,7 +1,5 @@
 PROJECT = gps
-include envs/network.env
-
-all: install lint test format
+include .env
 
 install:
 	python3 -m pip install --upgrade pip
@@ -46,4 +44,5 @@ prefect-server:
 	prefect server start --host ${PREFECT_HOST} --port ${PREFECT_SERVER_PORT}
 
 prefect-server-clean:
+	# NOTE: prefect 서버가 켜져 있는 상황에서 실행해야 합니다.
 	prefect server database reset -y
