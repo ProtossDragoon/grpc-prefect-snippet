@@ -1,6 +1,2 @@
-pylint
-pyyaml
-yapf
-python-dotenv
-
 # NOTE: 여기에 명시되지 않은 의존성들은 모두 Makefile 또는 dockerfile 에서 설치됩니다.
+python-dotenv

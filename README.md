@@ -156,6 +156,20 @@ python3 -m gps.server.a.main_deploy_docker
 python3 -m gps.client.scenarios.s3
 ```
 
+## 시나리오 #4
+
+이번 시나리오부터는 docker compose 를 이용해 prefect 데이터베이스 (PostgreSQL) 와 prefect 서버를 컨테이너화하여 로컬 prefect 기본 데이터베이스 (SQLite) 와 로컬 prefect 서버를 대체합니다. 이번 시나리오는 앞선 시나리오들이 컨테이너화된 prefect 서버에서도 잘 호환되어 실행되는지를 확인합니다. prefect 서버를 종료하고 다음 명령을 실행합니다.
+
+`터미널1` - 컨테이너화된 `prefect` 서버 실행
+```bash
+source .env-unset.bash
+docker compose build && docker compose up prefect-server
+```
+
+- 앞선 시나리오들이 잘 동작하는지 다시 실행해 봅니다.
+
+3/5 시나리오 1, 2 작동 테스트 완료
+
 # TODO 여기 아래로 아직 시나리오 작성 중
 
 `터미널3` - 서버 a (grpc 서버)

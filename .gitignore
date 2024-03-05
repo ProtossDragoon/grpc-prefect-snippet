@@ -212,3 +212,6 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+# Prefect DB - .env 파일에 정의됨
+prefectdb

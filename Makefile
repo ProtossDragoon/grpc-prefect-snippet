@@ -46,3 +46,10 @@ prefect-server:
 prefect-server-clean:
 	# NOTE: prefect 서버가 켜져 있는 상황에서 실행해야 합니다.
 	prefect server database reset -y
+	# NOTE: 아예 prefect 정리하고 싶다면 `make prefect-server-prune` 을 사용하세요.
+
+prefect-server-prune:
+	# NOTE: prefect 서버를 끄고 실행하는 것을 권장합니다.
+	sudo rm -r ${PREFECT_POSTGRESQL_HOST_VOLUME_PATH}
+	sudo rm -r ${PREFECT_LOCAL_STORAGE_HOST_VOLUME_PATH}
+	sudo rm -r ${PREFECT_HOME}
