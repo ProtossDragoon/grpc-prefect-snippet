@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  prefect-db:
+    image: postgres:latest
+    container_name: ${PREFECT_POSTGRESQL_CONTAINER_NAME}
+    # NOTE: 직접 포트를 매핑하는 대신 호스트 네트워크를 같이 사용합니다.
+    # network_mode: "host"
+    # NOTE: MacOS의 경우, 도커엔진이 `network_mode` 를 지원하지 않습니다.
+    # NOTE: 따라서 명시적으로 호스트 네트워크와 포트를 매핑하고, `host.docker.internal` 을 사용해 줍니다.
+    ports:
+      - '${PREFECT_POSTGRESQL_PORT}:${PREFECT_POSTGRESQL_PORT}'
+    volumes:
+      - ${PREFECT_POSTGRESQL_HOST_VOLUME_PATH}:${PREFECT_POSTGRESQL_CONTAINER_VOLUME_PATH}
+    environment:
+      - POSTGRES_USER=${PREFECT_POSTGRESQL_USER}
+      - POSTGRES_PASSWORD=${PREFECT_POSTGRESQL_PASSWORD}
+      - POSTGRES_DB=${PREFECT_POSTGRESQL_DB}
+
+  prefect-server:
+    image: ${PREFECT_SERVER_IMAGE_NAME}
+    depends_on:
+      - prefect-db
+    container_name: ${PREFECT_SERVER_CONTAINER_NAME}
+    build:
+      context: ./dockerfiles
+      dockerfile: base.dockerfile
+      args:
+        - PY3_VERSION=${PREFECT_SERVER_PY3_VERSION}
+        - BASE_IMAGE=${PREFECT_SERVER_BASE_IMAGE}
+    # NOTE: 직접 포트를 매핑하는 대신 호스트 네트워크를 같이 사용합니다.
+    # network_mode: "host"
+    # NOTE: MacOS의 경우, 도커엔진이 `network_mode` 를 지원하지 않습니다.
+    # NOTE: 따라서 명시적으로 호스트 네트워크와 포트를 매핑하고, `host.docker.internal` 을 사용해 줍니다.
+    ports:
+      - '${PREFECT_SERVER_PORT}:${PREFECT_SERVER_PORT}'
+    volumes:
+      - ${PREFECT_LOCAL_STORAGE_HOST_VOLUME_PATH}:${PREFECT_LOCAL_STORAGE_CONTAINER_VOLUME_PATH}
+    environment:
+      - PREFECT_DEBUG_MODE=${PREFECT_DEBUG_MODE}
+      - PREFECT_API_URL=${PREFECT_API_URL}
+      - PREFECT_LOCAL_STORAGE_PATH=${PREFECT_LOCAL_STORAGE_PATH}
+      - PREFECT_API_DATABASE_CONNECTION_URL=${PREFECT_API_DATABASE_CONNECTION_URL_IN_CONTAINERS}
+    command: prefect server start --host ${PREFECT_HOST} --port ${PREFECT_SERVER_PORT}

@@ -47,6 +47,6 @@ RUN apt-get update -y && apt-get upgrade && \
 
 # --- python-betterproto 와 prefect 의존성 관리를 하는 섹션 ---
 
-RUN python3 -m pip install --pre betterproto[compiler]
+RUN python3 -m pip install --pre 'betterproto[compiler]'
 
 RUN python3 -m pip install 'httpx[http2]' 'pydantic<2' 'typing-extensions==4.7.1' 'prefect>=2.14'
