@@ -168,7 +168,7 @@ docker compose build && docker compose up prefect-server
 
 - 앞선 시나리오들이 잘 동작하는지 다시 실행해 봅니다.
 
-3/5 시나리오 1, 2 작동 테스트 완료
+3/5 시나리오 1, 2, 3 작동 테스트 완료
 
 # TODO 여기 아래로 아직 시나리오 작성 중
 
